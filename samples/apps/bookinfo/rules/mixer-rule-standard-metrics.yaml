@@ -8,18 +8,18 @@ spec:
   - name: request_count
     instance_name: requestcount.metric.istio-config-default
     kind: COUNTER
-    label_names: [ source, target, service, method, version, response_code ]
+    label_names: [ source, destination, service, method, version, response_code ]
   - name: request_duration
     instance_name: requestduration.metric.istio-config-default
     kind: DISTRIBUTION
-    label_names: [ source, target, service, method, version, response_code ]
+    label_names: [ source, destination, service, method, version, response_code ]
     buckets:
       explicit_buckets:
         bounds: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
   - name: request_size
     instance_name: requestsize.metric.istio-config-default
     kind: DISTRIBUTION
-    label_names: [ source, target, service, method, version, response_code ]
+    label_names: [ source, destination, service, method, version, response_code ]
     buckets:
       exponentialBuckets:
         numFiniteBuckets: 8
@@ -28,7 +28,7 @@ spec:
   - name: response_size
     instance_name: responsesize.metric.istio-config-default
     kind: DISTRIBUTION
-    label_names: [ source, target, service, method, version, response_code ]
+    label_names: [ source, destination, service, method, version, response_code ]
     buckets:
       exponentialBuckets:
         numFiniteBuckets: 8
@@ -44,10 +44,10 @@ spec:
   value: "1"
   dimensions:
     source: source.labels["app"] | "unknown"
-    target: target.service | "unknown"
-    service: target.labels["app"] | "unknown"
+    destination: destination.service | "unknown"
+    service: destination.labels["app"] | "unknown"
     method: request.path | "unknown"
-    version: target.labels["version"] | "unknown"
+    version: destination.labels["version"] | "unknown"
     response_code: response.code | 200
   monitored_resource_type: '"UNSPECIFIED"'
 ---
@@ -60,10 +60,10 @@ spec:
   value: response.latency | response.duration | "0ms"
   dimensions:
     source: source.labels["app"] | "unknown"
-    target: target.service | "unknown"
-    service: target.labels["app"] | "unknown"
+    destination: destination.service | "unknown"
+    service: destination.labels["app"] | "unknown"
     method: request.path | "unknown"
-    version: target.labels["version"] | "unknown"
+    version: destination.labels["version"] | "unknown"
     response_code: response.code | 200
   monitored_resource_type: '"UNSPECIFIED"'
 ---
@@ -76,10 +76,10 @@ spec:
   value: request.size | 0
   dimensions:
     source: source.labels["app"] | "unknown"
-    target: target.service | "unknown"
-    service: target.labels["app"] | "unknown"
+    destination: destination.service | "unknown"
+    service: destination.labels["app"] | "unknown"
     method: request.path | "unknown"
-    version: target.labels["version"] | "unknown"
+    version: destination.labels["version"] | "unknown"
     response_code: response.code | 200
   monitored_resource_type: '"UNSPECIFIED"'
 ---
@@ -92,10 +92,10 @@ spec:
   value: response.size | 0
   dimensions:
     source: source.labels["app"] | "unknown"
-    target: target.service | "unknown"
-    service: target.labels["app"] | "unknown"
+    destination: destination.service | "unknown"
+    service: destination.labels["app"] | "unknown"
     method: request.path | "unknown"
-    version: target.labels["version"] | "unknown"
+    version: destination.labels["version"] | "unknown"
     response_code: response.code | 200
   monitored_resource_type: '"UNSPECIFIED"'
 ---
