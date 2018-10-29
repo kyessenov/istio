@@ -1,0 +1,14 @@
+# this config is created through command
+# mixgen adapter -c $GOPATH/src/istio.io/istio/mixer/adapter/mapper/config/config.proto_descriptor -o $GOPATH/src/istio.io/istio/mixer/adapter/mapper/config -s=false -n myadapter -t mapper
+apiVersion: "config.istio.io/v1alpha2"
+kind: adapter
+metadata:
+  name: myadapter
+  namespace: istio-system
+spec:
+  description: 
+  session_based: false
+  templates:
+  - mapper
+  config: CnkKKG1peGVyL2FkYXB0ZXIvbWFwcGVyL2NvbmZpZy9jb25maWcucHJvdG8SBmNvbmZpZyIICgZQYXJhbXNKMwoGEgQAAAIQCggKAQwSAwAAEgoICgECEgMBCA4KCQoCBAASAwIAEAoKCgMEAAESAwIIDmIGcHJvdG8z
+---
