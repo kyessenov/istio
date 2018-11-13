@@ -1,0 +1,116 @@
+---
+title: config
+layout: protoc-gen-docs
+generator: protoc-gen-docs
+number_of_entries: 4
+---
+<h2 id="APIRequirement">APIRequirement</h2>
+<section>
+<table class="message-fields">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr id="APIRequirement-endpoints">
+<td><code>endpoints</code></td>
+<td><code><a href="#Endpoint">Endpoint[]</a></code></td>
+<td>
+</td>
+</tr>
+<tr id="APIRequirement-version">
+<td><code>version</code></td>
+<td><code>string</code></td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+<h2 id="Endpoint">Endpoint</h2>
+<section>
+<table class="message-fields">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr id="Endpoint-endpoint">
+<td><code>endpoint</code></td>
+<td><code>string</code></td>
+<td>
+</td>
+</tr>
+<tr id="Endpoint-method">
+<td><code>method</code></td>
+<td><code>string</code></td>
+<td>
+</td>
+</tr>
+<tr id="Endpoint-name">
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>
+</td>
+</tr>
+<tr id="Endpoint-requirements">
+<td><code>requirements</code></td>
+<td><code><a href="#Requirement">Requirement[]</a></code></td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+<h2 id="Params">Params</h2>
+<section>
+<table class="message-fields">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr id="Params-api_requirements">
+<td><code>apiRequirements</code></td>
+<td><code><a href="#APIRequirement">APIRequirement[]</a></code></td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+<h2 id="Requirement">Requirement</h2>
+<section>
+<table class="message-fields">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr id="Requirement-actions">
+<td><code>actions</code></td>
+<td><code>string[]</code></td>
+<td>
+</td>
+</tr>
+<tr id="Requirement-resource">
+<td><code>resource</code></td>
+<td><code>string</code></td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</section>

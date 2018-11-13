@@ -1,0 +1,43 @@
+apiVersion: config.istio.io/v1alpha2
+kind: instance
+metadata:
+  name: ditto-authorization
+  namespace: istio-system
+spec:
+  template: ditto
+  params:
+    action:
+      path: '"test"'
+---
+apiVersion: "config.istio.io/v1alpha2"
+kind: rule
+metadata:
+  name: entrance
+  namespace: istio-system
+spec:
+  actions:
+  - handler: ditto-entrance.handler.istio-system
+    instances:
+    - ditto-authorization.instance.istio-system
+---
+apiVersion: "config.istio.io/v1alpha2"
+kind: rule
+metadata:
+  name: exit
+  namespace: istio-system
+spec:
+  actions:
+  - handler: ditto-exit.handler.istio-system
+    instances:
+    - ditto-authorization.instance.istio-system
+---
+apiVersion: "config.istio.io/v1alpha2"
+kind: rule
+metadata:
+  name: tokend
+  namespace: istio-system
+spec:
+  actions:
+  - handler: ditto-tokend.handler.istio-system
+    instances:
+    - ditto-authorization.instance.istio-system

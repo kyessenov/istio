@@ -1,0 +1,76 @@
+apiVersion: config.istio.io/v1alpha2
+kind: handler
+metadata:
+  name: ditto-entrance
+  namespace: istio-system
+spec:
+  adapter: ditto
+  connection:
+    address: ":9090"
+  params:
+    api_requirements:
+    - endpoints:
+      - endpoint: /entrance
+        method: GET
+        name: endpoint
+        requirements:
+        - actions:
+          - get
+          resource: endpoint
+      version: null
+---
+apiVersion: config.istio.io/v1alpha2
+kind: handler
+metadata:
+  name: ditto-exit
+  namespace: istio-system
+spec:
+  adapter: ditto
+  connection:
+    address: ":9090"
+  params:
+    api_requirements:
+    - endpoints:
+      - endpoint: /exit
+        method: GET
+        name: endpoint
+        requirements:
+        - actions:
+          - get
+          resource: endpoint
+      version: null
+---
+apiVersion: config.istio.io/v1alpha2
+kind: handler
+metadata:
+  name: ditto-tokend
+  namespace: istio-system
+spec:
+  adapter: ditto
+  connection:
+    address: ":9090"
+  params:
+    api_requirements:
+    - endpoints:
+      - endpoint: /resourcepolicy
+        method: POST
+        name: resource-policy-create
+        requirements:
+        - actions:
+          - create
+          resource: resource-policy
+      - endpoint: /resourcepolicy
+        method: DELETE
+        name: resource-policy-delete
+        requirements:
+        - actions:
+          - delete
+          resource: resource-policy
+      - endpoint: /resourcepolicy
+        method: GET
+        name: resource-policy-query
+        requirements:
+        - actions:
+          - query
+          resource: resource-policy
+      version: /api/v1

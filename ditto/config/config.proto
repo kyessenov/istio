@@ -1,0 +1,23 @@
+syntax = "proto3";
+package config;
+
+message Requirement {
+  repeated string actions = 1;
+  string resource = 2;
+}
+
+message Endpoint {
+  string endpoint = 1;
+  string method = 2;
+  string name = 3;
+  repeated Requirement requirements = 4;
+}
+
+message APIRequirement{
+  repeated Endpoint endpoints = 1;
+  string version = 2;
+}
+
+message Params{
+  repeated APIRequirement api_requirements = 1;
+}

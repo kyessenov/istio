@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package ditto;
+
+import "mixer/adapter/model/v1beta1/extensions.proto";
+
+option (istio.mixer.adapter.model.v1beta1.template_variety) = TEMPLATE_VARIETY_CHECK;
+
+message Template {
+  Action action = 1;
+}
+
+message Action {
+  string service = 1;
+  map<string,string> properties = 2;
+  string path = 3;
+  string method = 4;
+}
