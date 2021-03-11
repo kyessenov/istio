@@ -157,6 +157,10 @@ func TracingTLS(value *networkingAPI.ClientTLSSettings, metadata *model.Bootstra
 		withConvert(transportSocketConverter(value, "tracer", metadata, isH2))
 }
 
+func EnvoyStatusPort(value int) Instance {
+	return newOption("envoy_status_port", value)
+}
+
 func EnvoyMetricsServiceAddress(value string) Instance {
 	return newOptionOrSkipIfZero("envoy_metrics_service_address", value).withConvert(addressConverter(value))
 }

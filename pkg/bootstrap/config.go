@@ -71,6 +71,7 @@ type Config struct {
 	ProvCert            string
 	DiscoveryHost       string
 	CallCredentials     bool
+	EnvoyStatusPort     int
 }
 
 // newTemplateParams creates a new template configuration for the given configuration.
@@ -130,6 +131,8 @@ func (cfg Config) toTemplateParams() (map[string]interface{}, error) {
 		return nil, err
 	}
 	opts = append(opts, proxyOpts...)
+
+	opts = append(opts, option.EnvoyStatusPort(cfg.EnvoyStatusPort))
 
 	// TODO: allow reading a file with additional metadata (for example if created with
 	// 'envref'. This will allow Istio to generate the right config even if the pod info

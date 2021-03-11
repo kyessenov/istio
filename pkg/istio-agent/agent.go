@@ -127,6 +127,9 @@ type AgentConfig struct {
 
 	// Path to local UDS to communicate with Envoy
 	XdsUdsPath string
+
+	// EnvoyStatusPort
+	EnvoyStatusPort int
 }
 
 // NewAgent hosts the functionality for local SDS and XDS. This consists of the local SDS server and

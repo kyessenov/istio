@@ -58,6 +58,7 @@ type ProxyConfig struct {
 	ProxyViaAgent       bool
 	CallCredentials     bool
 	LogAsJSON           bool
+	StatusPort          int
 }
 
 // NewProxy creates an instance of the proxy control commands
@@ -110,7 +111,7 @@ func (e *envoy) args(fname string, epoch int, bootstrapConfig string) []string {
 		proxyLocalAddressType = "v6"
 	}
 	startupArgs := []string{"-c", fname,
-		"--restart-epoch", fmt.Sprint(epoch),
+		"--disable-hot-restart",
 		"--drain-time-s", fmt.Sprint(int(convertDuration(e.Config.DrainDuration) / time.Second)),
 		"--parent-shutdown-time-s", fmt.Sprint(int(convertDuration(e.Config.ParentShutdownDuration) / time.Second)),
 		"--service-cluster", e.Config.ServiceCluster,
@@ -172,6 +173,7 @@ func (e *envoy) Run(config interface{}, epoch int, abort <-chan error) error {
 			ProvCert:            e.ProvCert,
 			CallCredentials:     e.CallCredentials,
 			DiscoveryHost:       discHost,
+			EnvoyStatusPort:     e.StatusPort,
 		}).CreateFileForEpoch(epoch)
 		if err != nil {
 			log.Error("Failed to generate bootstrap config: ", err)

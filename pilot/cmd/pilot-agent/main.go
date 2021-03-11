@@ -137,6 +137,7 @@ var (
 	// This is a copy of the env var in the init code.
 	dnsCaptureByAgent = env.RegisterBoolVar("ISTIO_META_DNS_CAPTURE", false,
 		"If set to true, enable the capture of outgoing DNS packets on port 53, redirecting to istio-agent on :15053").Get()
+	envoyStatusPort = env.RegisterIntVar("ENVOY_STATUS_PORT", 15021, "").Get()
 
 	rootCmd = &cobra.Command{
 		Use:          "pilot-agent",
@@ -271,12 +272,13 @@ var (
 			}
 
 			agentConfig := &istio_agent.AgentConfig{
-				XDSRootCerts: xdsRootCA,
-				CARootCerts:  caRootCA,
-				XDSHeaders:   map[string]string{},
-				XdsUdsPath:   constants.DefaultXdsUdsPath,
-				IsIPv6:       proxyIPv6,
-				ProxyType:    role.Type,
+				XDSRootCerts:    xdsRootCA,
+				CARootCerts:     caRootCA,
+				XDSHeaders:      map[string]string{},
+				XdsUdsPath:      constants.DefaultXdsUdsPath,
+				IsIPv6:          proxyIPv6,
+				ProxyType:       role.Type,
+				EnvoyStatusPort: envoyStatusPort,
 			}
 			extractXDSHeadersFromEnv(agentConfig)
 			if proxyXDSViaAgent {
@@ -336,6 +338,7 @@ var (
 				Sidecar:             role.Type == model.SidecarProxy,
 				ProxyViaAgent:       agentConfig.ProxyXDSViaAgent,
 				CallCredentials:     callCredentials.Get(),
+				StatusPort:          agentConfig.EnvoyStatusPort,
 			})
 
 			drainDuration, _ := types.DurationFromProto(proxyConfig.TerminationDrainDuration)

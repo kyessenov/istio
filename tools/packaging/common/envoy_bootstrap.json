@@ -234,7 +234,7 @@
                   "socket_address": {
                     "protocol": "TCP",
                     "address": "{{ .localhost }}",
-                    "port_value": 15020
+                    "port_value": {{ .config.StatusPort }}
                   }
                 }
               }
@@ -505,6 +505,7 @@
             "port_value": 15090
           }
         },
+        "reuse_port": true,
         "filter_chains": [
           {
             "filters": [
@@ -551,7 +552,7 @@
           "socket_address": {
             "protocol": "TCP",
             "address": "{{ .wildcard }}",
-            "port_value": 15021
+            "port_value": {{ .envoy_status_port }}
           }
         },
         "filter_chains": [

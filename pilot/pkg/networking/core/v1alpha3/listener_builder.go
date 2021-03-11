@@ -337,6 +337,7 @@ func (lb *ListenerBuilder) buildVirtualOutboundListener(configgen *ConfigGenerat
 		UseOriginalDst:   proto.BoolTrue,
 		FilterChains:     filterChains,
 		TrafficDirection: core.TrafficDirection_OUTBOUND,
+		ReusePort:        true,
 	}
 	accessLogBuilder.setListenerAccessLog(lb.push.Mesh, ipTablesListener, lb.node)
 	lb.virtualOutboundListener = ipTablesListener
@@ -366,6 +367,7 @@ func (lb *ListenerBuilder) buildVirtualInboundListener(configgen *ConfigGenerato
 		UseOriginalDst:   proto.BoolTrue,
 		TrafficDirection: core.TrafficDirection_INBOUND,
 		FilterChains:     filterChains,
+		ReusePort:        true,
 	}
 	accessLogBuilder.setListenerAccessLog(lb.push.Mesh, lb.virtualInboundListener, lb.node)
 	lb.aggregateVirtualInboundListener(needTLSForPassThroughFilterChain)
