@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: client
+spec:
+  ports:
+  - port: 9080
+    name: http
+    targetPort: 8080
+  selector:
+    app: client
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  namespace: default
+  labels:
+    app: client
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  volumes:
+  - emptyDir:
+      medium: Memory
+    name: istio-envoy
+  containers:
+  - command:
+    - /bin/sh
+    args:
+    - -c
+    - |
+      perl -pe 's/\$\{([_A-Z]+)\}/$ENV{$1}/g' < envoy.yaml > /etc/istio/proxy/envoy.yaml
+      cat /etc/istio/proxy/envoy.yaml
+      /usr/local/bin/envoy -c /etc/istio/proxy/envoy.yaml --disable-hot-restart --drain-time-s 10 --parent-shutdown-time-s 60 --local-address-ip-version v4 --bootstrap-version 3 --concurrency 2
+    env:
+    - name: ISTIO_SERVICE
+      value: server
+    image: gcr.io/kuat-dev/proxy_template:v1.9.0-3
+    imagePullPolicy: Always
+    name: istio-proxy
+    resources:
+      limits:
+        cpu: "2"
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      privileged: false
+   #  readOnlyRootFilesystem: true
+      runAsGroup: 1337
+      runAsNonRoot: true
+      runAsUser: 1337
+    volumeMounts:
+    - mountPath: /etc/istio/proxy
+      name: istio-envoy
+  - args:
+    - server
+    image: fortio/fortio:latest_release
+    imagePullPolicy: Always
+    name: fortio
+    ports:
+    - containerPort: 8080
+      name: http-fortio
+      protocol: TCP
+    - containerPort: 8079
+      name: grpc-ping
+      protocol: TCP
+  initContainers:
+  - args:
+    - istio-iptables
+    - -p
+    - "15001"
+    - -z
+    - "15006"
+    - -u
+    - "1337"
+    - -m
+    - REDIRECT
+    - -i
+    - '*'
+    - -x
+    - ""
+    - -b
+    - '*'
+    - -d
+    - 15090,15021,20021,20020,15020
+    image: istio/proxyv2:1.9.0
+    imagePullPolicy: Always
+    name: istio-init
+    resources:
+      limits:
+        cpu: "2"
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        add:
+        - NET_ADMIN
+        - NET_RAW
+        drop:
+        - ALL
+      privileged: false
+      readOnlyRootFilesystem: false
+      runAsGroup: 0
+      runAsNonRoot: false
+      runAsUser: 0
+  securityContext:
+    fsGroup: 1337
