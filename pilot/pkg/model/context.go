@@ -1041,6 +1041,17 @@ func (node *Proxy) IsVM() bool {
 	return node.Metadata != nil && node.Metadata.Labels[constants.TestVMLabel] != ""
 }
 
+const RemoteSidecarAnnotation = "sidecar.istio.io/isRemote"
+
+func (node *Proxy) IsRemote() bool {
+	_, ok := node.Metadata.Annotations[RemoteSidecarAnnotation]
+	return ok
+}
+
+func (node *Proxy) RemotePeer() string {
+	return node.Metadata.Annotations[RemoteSidecarAnnotation]
+}
+
 type GatewayController interface {
 	ConfigStoreCache
 	Recompute(GatewayContext) error

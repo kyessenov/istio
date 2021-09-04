@@ -44,11 +44,14 @@ type EndpointBuilder struct {
 	hostname string
 	// If specified, the fully qualified Pod hostname will be "<hostname>.<subdomain>.<pod namespace>.svc.<cluster domain>".
 	subDomain string
+
+	remoteProxyIP string
 }
 
 func NewEndpointBuilder(c controllerInterface, pod *v1.Pod) *EndpointBuilder {
 	locality, sa, namespace, hostname, subdomain, ip := "", "", "", "", "", ""
 	var podLabels labels.Instance
+	remoteProxyIP := ""
 	if pod != nil {
 		locality = c.getPodLocality(pod)
 		sa = kube.SecureNamingSAN(pod)
@@ -62,6 +65,9 @@ func NewEndpointBuilder(c controllerInterface, pod *v1.Pod) *EndpointBuilder {
 			}
 		}
 		ip = pod.Status.PodIP
+		if pod.Annotations != nil {
+			remoteProxyIP = pod.Annotations[model.RemoteSidecarAnnotation]
+		}
 	}
 	dm, _ := kubeUtil.GetDeployMetaFromPod(pod)
 	out := &EndpointBuilder{
@@ -71,11 +77,12 @@ func NewEndpointBuilder(c controllerInterface, pod *v1.Pod) *EndpointBuilder {
 			Label:     locality,
 			ClusterID: c.Cluster(),
 		},
-		tlsMode:      kube.PodTLSMode(pod),
-		workloadName: dm.Name,
-		namespace:    namespace,
-		hostname:     hostname,
-		subDomain:    subdomain,
+		tlsMode:       kube.PodTLSMode(pod),
+		workloadName:  dm.Name,
+		namespace:     namespace,
+		hostname:      hostname,
+		subDomain:     subdomain,
+		remoteProxyIP: remoteProxyIP,
 	}
 	networkID := out.endpointNetwork(ip)
 	out.labels = labelutil.AugmentLabels(podLabels, c.Cluster(), locality, networkID)
@@ -132,6 +139,7 @@ func (b *EndpointBuilder) buildIstioEndpoint(
 		HostName:              b.hostname,
 		SubDomain:             b.subDomain,
 		DiscoverabilityPolicy: discoverabilityPolicy,
+		RemoteProxyIP:         b.remoteProxyIP,
 	}
 }
 

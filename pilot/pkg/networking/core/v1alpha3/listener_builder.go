@@ -17,6 +17,7 @@ package v1alpha3
 import (
 	"sort"
 
+	udpa "github.com/cncf/udpa/go/udpa/type/v1"
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	tcp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
@@ -26,6 +27,7 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/protobuf/types/known/durationpb"
 
+	"google.golang.org/protobuf/types/known/structpb"
 	networking "istio.io/api/networking/v1alpha3"
 	"istio.io/istio/pilot/pkg/features"
 	"istio.io/istio/pilot/pkg/model"
@@ -55,8 +57,6 @@ var blackholeFilters = []*listener.Filter{{
 		ClusterSpecifier: &tcp.TcpProxy_Cluster{Cluster: util.BlackHoleCluster},
 	})},
 }}
-
-const remoteSidecarAnnotation = "sidecar.istio.io/isRemote"
 
 // A stateful listener builder
 // Support the below intentions
@@ -168,12 +168,6 @@ func mergeInspectors(a, b map[int]enabledInspector) map[int]enabledInspector {
 		result[p] = i
 	}
 	return result
-}
-
-// hack instead of using plugin for now
-func (lb *ListenerBuilder) isRemoteProxy() bool {
-	_, ok := lb.node.Metadata.Annotations[remoteSidecarAnnotation]
-	return ok
 }
 
 func (lb *ListenerBuilder) aggregateVirtualInboundListener(passthroughInspectors map[int]enabledInspector) *ListenerBuilder {
@@ -380,7 +374,7 @@ func (lb *ListenerBuilder) buildVirtualOutboundListener(configgen *ConfigGenerat
 		isTransparentProxy = proto.BoolTrue
 	}
 
-	filterChains := buildOutboundCatchAllNetworkFilterChains(configgen, lb.node, lb.push, lb.isRemoteProxy())
+	filterChains := buildOutboundCatchAllNetworkFilterChains(configgen, lb.node, lb.push, lb.node.IsRemote())
 
 	actualWildcard, _ := getActualWildcardAndLocalHost(lb.node)
 
@@ -395,7 +389,7 @@ func (lb *ListenerBuilder) buildVirtualOutboundListener(configgen *ConfigGenerat
 	}
 	accessLogBuilder.setListenerAccessLog(lb.push, lb.node, ipTablesListener)
 	lb.virtualOutboundListener = ipTablesListener
-	if lb.isRemoteProxy() {
+	if lb.node.IsRemote() {
 		lb.virtualOutboundListener.ListenerFilters = append(lb.virtualOutboundListener.ListenerFilters,
 			xdsfilters.ProxyProtocol,
 		)
@@ -424,6 +418,23 @@ func (lb *ListenerBuilder) buildVirtualInboundListener(configgen *ConfigGenerato
 	}
 	accessLogBuilder.setListenerAccessLog(lb.push, lb.node, lb.virtualInboundListener)
 	lb.aggregateVirtualInboundListener(passthroughInspector)
+	if lb.node.IsRemote() {
+		lb.virtualInboundListener.ListenerFilters = append(lb.virtualInboundListener.ListenerFilters,
+			&listener.ListenerFilter{
+				Name: "set-destination-ip",
+				ConfigType: &listener.ListenerFilter_TypedConfig{TypedConfig: util.MessageToAny(&udpa.TypedStruct{
+					TypeUrl: "type.googleapis.com/io.istio.tcp.remote_proxy_proto.v1.Config",
+					Value: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"destination_ip": {
+								Kind: &structpb.Value_StringValue{StringValue: lb.node.RemotePeer()},
+							},
+						},
+					},
+				},
+				)},
+			})
+	}
 
 	return lb
 }

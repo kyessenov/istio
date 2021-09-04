@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server
+spec:
+  selector:
+    app: server
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 80
+  - name: tcp
+    port: 8081
+    targetPort: 1025
+  - name: uproxy
+    port: 15100
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: server
+  labels:
+    app: server
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  terminationGracePeriodSeconds: 0
+  serviceAccountName: client
+  containers:
+  - name: nginx
+    image: nginx:1.14.2
+  - name: go-echo
+    image: cjimti/go-echo
+  - name: uproxy
+    image: envoyproxy/envoy:v1.19.1
+    command: ["envoy", "--config-path", "/workspace/config.yaml", "--concurrency", "2"]
+    volumeMounts:
+    - mountPath: /workspace
+      name: envoy-config
+      readOnly: true
+  volumes:
+  - name: envoy-config
+    configMap:
+      name: server-uproxy

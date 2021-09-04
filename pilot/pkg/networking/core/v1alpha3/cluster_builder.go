@@ -26,6 +26,7 @@ import (
 	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	upstreamproxyproto "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/proxy_protocol/v3"
 	auth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	http "github.com/envoyproxy/go-control-plane/envoy/extensions/upstreams/http/v3"
 	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
@@ -479,6 +480,7 @@ func (cb *ClusterBuilder) buildInboundClusterForPortOrUDS(clusterPort int, bind 
 			},
 		}
 	}
+	cb.applyRemoteProxy(localCluster.cluster)
 	return localCluster
 }
 
@@ -568,6 +570,45 @@ func addUint32(left, right uint32) (uint32, bool) {
 	return left + right, false
 }
 
+func (cb *ClusterBuilder) applyRemoteProxy(c *cluster.Cluster) {
+	if cb.proxy.IsRemote() {
+		c.ClusterDiscoveryType = &cluster.Cluster_Type{Type: cluster.Cluster_STATIC}
+		c.LbPolicy = cluster.Cluster_ROUND_ROBIN
+		c.LoadAssignment = &endpoint.ClusterLoadAssignment{
+			ClusterName: c.Name,
+			Endpoints: []*endpoint.LocalityLbEndpoints{{
+				LbEndpoints: []*endpoint.LbEndpoint{{
+					HostIdentifier: &endpoint.LbEndpoint_Endpoint{
+						Endpoint: &endpoint.Endpoint{
+							Address: &core.Address{
+								Address: &core.Address_SocketAddress{
+									SocketAddress: &core.SocketAddress{
+										Address: cb.proxy.RemotePeer(),
+										PortSpecifier: &core.SocketAddress_PortValue{
+											PortValue: uint32(15100),
+										},
+									},
+								},
+							},
+						},
+					}}},
+			}},
+		}
+		c.TransportSocket = &core.TransportSocket{
+			Name: "envoy.transport_sockets.upstream_proxy_protocol",
+			ConfigType: &core.TransportSocket_TypedConfig{
+				TypedConfig: util.MessageToAny(&upstreamproxyproto.ProxyProtocolUpstreamTransport{
+					Config: &core.ProxyProtocolConfig{Version: core.ProxyProtocolConfig_V1},
+					TransportSocket: &core.TransportSocket{
+						Name: "envoy.transport_sockets.raw_buffer",
+					},
+				}),
+			},
+		}
+		c.UpstreamBindConfig = nil
+	}
+}
+
 // buildInboundPassthroughClusters builds passthrough clusters for inbound.
 func (cb *ClusterBuilder) buildInboundPassthroughClusters() []*cluster.Cluster {
 	// ipv4 and ipv6 feature detection. Envoy cannot ignore a config where the ip version is not supported
@@ -583,6 +624,7 @@ func (cb *ClusterBuilder) buildInboundPassthroughClusters() []*cluster.Cluster {
 				},
 			},
 		}
+		cb.applyRemoteProxy(inboundPassthroughClusterIpv4)
 		clusters = append(clusters, inboundPassthroughClusterIpv4)
 	}
 	if cb.proxy.SupportsIPv6() {
@@ -596,6 +638,7 @@ func (cb *ClusterBuilder) buildInboundPassthroughClusters() []*cluster.Cluster {
 				},
 			},
 		}
+		cb.applyRemoteProxy(inboundPassthroughClusterIpv6)
 		clusters = append(clusters, inboundPassthroughClusterIpv6)
 	}
 	return clusters

@@ -386,6 +386,9 @@ func (b *EndpointBuilder) createClusterLoadAssignment(llbOpts []*LocLbEndpointsA
 // buildEnvoyLbEndpoint packs the endpoint based on istio info.
 func buildEnvoyLbEndpoint(e *model.IstioEndpoint) *endpoint.LbEndpoint {
 	addr := util.BuildAddress(e.Address, e.EndpointPort)
+	if e.RemoteProxyIP != "" {
+		addr = util.BuildAddress(e.RemoteProxyIP, e.EndpointPort)
+	}
 
 	ep := &endpoint.LbEndpoint{
 		LoadBalancingWeight: &wrappers.UInt32Value{
